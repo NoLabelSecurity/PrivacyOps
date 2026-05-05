@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("USER") // ADMIN, DPO, USER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PrivacyRequest {
+  id          String   @id @default(cuid())
+  userEmail   String
+  requestType String   // ACCESS, DELETE
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, OVERDUE
+  notes       String?
+  deadline    DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  alerts      Alert[]
+}
+
+model Alert {
+  id               String         @id @default(cuid())
+  type             String         // OVERDUE, NEW_REQUEST
+  message          String
+  read             Boolean        @default(false)
+  privacyRequestId String?
+  privacyRequest   PrivacyRequest? @relation(fields: [privacyRequestId], references: [id])
+  createdAt        DateTime       @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model DataSource {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // SAAS, DATABASE, CLOUD_STORAGE
+  status      String   @default("ACTIVE")
+  lastScanned DateTime?
+  createdAt   DateTime @default(now())
+}
